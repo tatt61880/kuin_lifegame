@@ -1,0 +1,121 @@
+{
+    lifegame.kn (for Kuin 0.023):
+        Last Modified: 2013/03/24 23:10:16.
+        Edited by @tatt61880
+            https://twitter.com/tatt61880
+            https://github.com/tatt61880
+
+    lifegame.kn (for Kuin 0.01):
+        Created by @nullkal
+            https://twitter.com/nullkal
+            http://gist.github.com/nullkal/3226293
+}
+
+const WINDOW_WIDTH:float :: 1600.0
+const WINDOW_HEIGHT:float :: 900.0
+const OPTION_WIDTH:float :: 300.0
+const STAGE_WIDTH:float :: (lifegame@WINDOW_WIDTH - lifegame@OPTION_WIDTH)
+const STAGE_HEIGHT:float :: lifegame@WINDOW_HEIGHT
+const BLOCKSIZE:float :: 50.0
+const BLOCKNUM_X:int :: (lifegame@STAGE_WIDTH / lifegame@BLOCKSIZE) $int
+const BLOCKNUM_Y:int :: (lifegame@STAGE_HEIGHT / lifegame@BLOCKSIZE) $int
+
+func Init(cfg : Kuin@CCfg)
+    do cfg.Title :: "Life Game for Kuin"
+    do cfg.FullScr :: false
+    do cfg.PadNum :: 1
+    do cfg.WaitTime :: 120
+end func
+
+func DrawLifegame(board:[][]int)
+    {option area}
+    do D3D@DrawRect(lifegame@STAGE_WIDTH, 0.0, lifegame@WINDOW_WIDTH, lifegame@STAGE_HEIGHT, 0.2, 0.2, 0.5, 1.0)
+    {block}
+    for i(1, lifegame@BLOCKNUM_Y)
+        for j(1, lifegame@BLOCKNUM_X)
+            var x1:float :: (lifegame@STAGE_WIDTH / lifegame@BLOCKNUM_X $ float) * (j - 1) $ float + 1.0
+            var y1:float :: (lifegame@STAGE_HEIGHT / lifegame@BLOCKNUM_Y $ float) * (i - 1) $ float + 1.0
+            var x2:float :: (lifegame@STAGE_WIDTH / lifegame@BLOCKNUM_X $ float) * j $ float - 1.0
+            var y2:float :: (lifegame@STAGE_HEIGHT / lifegame@BLOCKNUM_Y $ float) * i $ float - 1.0
+            var color:float :: 1.0 - board[i][j] $ float
+            do D3D@DrawRect(x1, y1, x2, y2, color, color, color, 1.0)
+        end for
+    end for
+    do D3D@Flip()
+end func
+
+func Main()
+    var board:[][]int :: @new [lifegame@BLOCKNUM_Y + 2][]int
+    var before_board:[][]int :: @new [lifegame@BLOCKNUM_Y + 2][]int
+    for i(0, lifegame@BLOCKNUM_Y + 2 - 1)
+        do board[i] :: @new[lifegame@BLOCKNUM_X + 2]int
+        do before_board[i] :: @new[lifegame@BLOCKNUM_X + 2]int
+        for j(0, lifegame@BLOCKNUM_X + 2 - 1)
+            do board[i][j] :: 0
+            do before_board[i][j] :: 0
+        end for
+    end for
+    var frame_per_drawing:int :: 10
+    var last_x:int :: 0
+    var last_y:int :: 0
+    var stopflag:bool :: true
+    while a(true)
+        do lifegame@DrawLifegame(board)
+        do Kuin@Act()
+        do D3D@Clear()
+        if (DI@MouseBtn(DI@EMouseBtn#Left) > 0)
+            var mouse_x:float
+            var mouse_y:float
+            do DI@MousePos(&mouse_x, &mouse_y)
+
+            var cell_x:int :: (mouse_x * (lifegame@BLOCKNUM_X$float) / lifegame@STAGE_WIDTH) $ int + 1
+            var cell_y:int :: (mouse_y * (lifegame@BLOCKNUM_Y$float) / lifegame@STAGE_HEIGHT) $ int + 1
+            if (last_x <> cell_x | last_y <> cell_y)
+                if (0 < cell_x & 0 < cell_y & cell_x <= lifegame@BLOCKNUM_X & cell_y <= lifegame@BLOCKNUM_Y)
+                    do board[cell_y][cell_x] :: 1 - board[cell_y][cell_x]
+                end if
+
+                do last_x :: cell_x
+                do last_y :: cell_y
+            end if
+        else
+            do last_x :: 0
+            do last_y :: 0
+        end if
+
+        if (DI@PadBtn(0, DI@EPadBtn#A) = 1) { Start/Stop }
+                do stopflag :: !stopflag
+        elif (DI@PadBtn(0, DI@EPadBtn#Right) = 1)
+            if (frame_per_drawing > 5)
+                do frame_per_drawing :- 5
+                do Kuin@Dbg("frame_per_drawing = " ~ frame_per_drawing.ToStr())
+            end if
+        elif (DI@PadBtn(0, DI@EPadBtn#Left) = 1)
+            if (frame_per_drawing < 120)
+                do frame_per_drawing :+ 5
+                do Kuin@Dbg("frame_per_drawing = " ~ frame_per_drawing.ToStr())
+            end if
+        end if
+
+        if (stopflag)
+            continue a
+        end if
+
+        if (DI@MouseBtn(DI@EMouseBtn#Right) <= 0 & Kuin@Cnt() % frame_per_drawing = 0)
+            var tmp:[][]int :: board
+            do board :: before_board
+            do before_board :: tmp
+            for i(1, lifegame@BLOCKNUM_Y)
+                for j(1, lifegame@BLOCKNUM_X)
+                    var living_num:int :: before_board[i-1][j-1] + before_board[i-1][j] + before_board[i-1][j+1] + before_board[i][j-1] + before_board[i][j+1] + before_board[i+1][j-1] + before_board[i+1][j] + before_board[i+1][j+1]
+                    if (living_num = 3 | (before_board[i][j] = 1 & living_num = 2))
+                        do board[i][j] :: 1
+                    else
+                        do board[i][j] :: 0
+                    end if
+                end for
+            end for
+        end if
+    end while
+end func
+
