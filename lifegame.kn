@@ -1,71 +1,72 @@
 {
     lifegame.kn (for Kuin 1.00):
-        Last Modified: 2013/11/07 12:52:12.
+        Last Modified:  2013/11/08 02:53:07.
         Edited by @tatt61880
-            https://twitter.com/tatt61880
-            https://github.com/tatt61880
+            https: //twitter.com/tatt61880
+            https: //github.com/tatt61880
 
     lifegame.kn (for Kuin 0.01):
         Created by @nullkal
-            https://twitter.com/nullkal
-            http://gist.github.com/nullkal/3226293
+            https: //twitter.com/nullkal
+            http: //gist.github.com/nullkal/3226293
 }
 
-const WINDOW_WIDTH:float :: 1600.0
-const WINDOW_HEIGHT:float :: 900.0
-const OPTION_WIDTH:float :: 300.0
-const STAGE_WIDTH:float :: (@WINDOW_WIDTH - @OPTION_WIDTH)
-const STAGE_HEIGHT:float :: @WINDOW_HEIGHT
-const BLOCKSIZE:float :: 50.0
-const BLOCKNUM_X:int :: (@STAGE_WIDTH / @BLOCKSIZE) $int
-const BLOCKNUM_Y:int :: (@STAGE_HEIGHT / @BLOCKSIZE) $int
+const WindowWidth: float :: 1600.0
+const WindowHeight: float :: 900.0
+const OptionWidth: float :: 300.0
+const StageWidth: float :: (@WindowWidth - @OptionWidth)
+const StageHeight: float :: @WindowHeight
+const BlockSize: float :: 20.0
+const BlockNumX: int :: (@StageWidth / @BlockSize) $int
+const BlockNumY: int :: (@StageHeight / @BlockSize) $int
+const DefaultFramePerDrawing: int :: 5
 
-func Init(cfg : Kuin@CCfg)
+func Init(cfg :  Kuin@CCfg)
     do cfg.Title :: "Life Game for Kuin"
 end func
 
-func DrawLifegame(board:[][]int)
+func DrawLifegame(board: [][]int)
     {option area}
-    do Draw@Rect(@STAGE_WIDTH, 0.0, @WINDOW_WIDTH - @STAGE_WIDTH, @STAGE_HEIGHT, 0.2, 0.2, 0.5, 1.0)
+    do Draw@Rect(@StageWidth, 0.0, @WindowWidth - @StageWidth, @StageHeight, 0.2, 0.2, 0.5, 1.0)
     {block}
-    for i(1, @BLOCKNUM_Y)
-        for j(1, @BLOCKNUM_X)
-            var x1:float :: (@STAGE_WIDTH / @BLOCKNUM_X $ float) * (j - 1) $ float + 1.0
-            var y1:float :: (@STAGE_HEIGHT / @BLOCKNUM_Y $ float) * (i - 1) $ float + 1.0
-            var x2:float :: (@STAGE_WIDTH / @BLOCKNUM_X $ float) * j $ float - 1.0
-            var y2:float :: (@STAGE_HEIGHT / @BLOCKNUM_Y $ float) * i $ float - 1.0
-            var color:float :: 1.0 - board[i][j] $ float
-            do Draw@Rect(x1, y1, @BLOCKSIZE, @BLOCKSIZE, color, color, color, 1.0)
+    for i(1, @BlockNumY)
+        for j(1, @BlockNumX)
+            var x1: float :: (@StageWidth / @BlockNumX $ float) * (j - 1) $ float + 1.0
+            var y1: float :: (@StageHeight / @BlockNumY $ float) * (i - 1) $ float + 1.0
+            var x2: float :: (@StageWidth / @BlockNumX $ float) * j $ float - 1.0
+            var y2: float :: (@StageHeight / @BlockNumY $ float) * i $ float - 1.0
+            var color: float :: 1.0 - board[i][j] $ float
+            do Draw@Rect(x1, y1, @BlockSize, @BlockSize, color, color, color, 1.0)
         end for
     end for
 end func
 
 func Main()
-    var board:[][]int :: #[@BLOCKNUM_Y + 2][]int
-    var before_board:[][]int :: #[@BLOCKNUM_Y + 2][]int
-    for i(0, @BLOCKNUM_Y + 2 - 1)
-        do board[i] :: #[@BLOCKNUM_X + 2]int
-        do before_board[i] :: #[@BLOCKNUM_X + 2]int
-        for j(0, @BLOCKNUM_X + 2 - 1)
+    var board: [][]int :: #[@BlockNumY + 2][]int
+    var before_board: [][]int :: #[@BlockNumY + 2][]int
+    for i(0, @BlockNumY + 2 - 1)
+        do board[i] :: #[@BlockNumX + 2]int
+        do before_board[i] :: #[@BlockNumX + 2]int
+        for j(0, @BlockNumX + 2 - 1)
             do board[i][j] :: 0
             do before_board[i][j] :: 0
         end for
     end for
-    var frame_per_drawing:int :: 10
-    var last_x:int :: 0
-    var last_y:int :: 0
-    var stopflag:bool :: true
+    var frame_per_drawing: int :: @DefaultFramePerDrawing
+    var last_x: int :: 0
+    var last_y: int :: 0
+    var stopflag: bool :: true
     while a(true)
         do @DrawLifegame(board)
         do Kuin@Act()
         if (Input@Mouse(Input@EMouse#Left) > 0)
-            var mouse_x:float :: Input@MouseX()
-            var mouse_y:float :: Input@MouseY()
+            var mouse_x: float :: Input@MouseX()
+            var mouse_y: float :: Input@MouseY()
 
-            var cell_x:int :: (mouse_x * (@BLOCKNUM_X$float) / @STAGE_WIDTH) $ int + 1
-            var cell_y:int :: (mouse_y * (@BLOCKNUM_Y$float) / @STAGE_HEIGHT) $ int + 1
+            var cell_x: int :: (mouse_x * (@BlockNumX$float) / @StageWidth) $ int + 1
+            var cell_y: int :: (mouse_y * (@BlockNumY$float) / @StageHeight) $ int + 1
             if (last_x <> cell_x | last_y <> cell_y)
-                if (0 < cell_x & 0 < cell_y & cell_x <= @BLOCKNUM_X & cell_y <= @BLOCKNUM_Y)
+                if (0 < cell_x & 0 < cell_y & cell_x <= @BlockNumX & cell_y <= @BlockNumY)
                     do board[cell_y][cell_x] :: 1 - board[cell_y][cell_x]
                 end if
 
@@ -77,7 +78,7 @@ func Main()
             do last_y :: 0
         end if
 
-        if (Input@Pad(0, Input@EBtn#A) = 1) { Start/Stop }
+        if (Input@Pad(0, Input@EBtn#A) = 1) {Start/Stop}
                 do stopflag :: !stopflag
         elif (Input@Pad(0, Input@EBtn#Right) = 1)
             if (frame_per_drawing > 5)
@@ -96,12 +97,12 @@ func Main()
         end if
 
         if (Input@Mouse(Input@EMouse#Right) <= 0 & Kuin@Cnt() % frame_per_drawing = 0)
-            var tmp:[][]int :: board
+            var tmp: [][]int :: board
             do board :: before_board
             do before_board :: tmp
-            for i(1, @BLOCKNUM_Y)
-                for j(1, @BLOCKNUM_X)
-                    var living_num:int :: before_board[i-1][j-1] + before_board[i-1][j] + before_board[i-1][j+1] + before_board[i][j-1] + before_board[i][j+1] + before_board[i+1][j-1] + before_board[i+1][j] + before_board[i+1][j+1]
+            for i(1, @BlockNumY)
+                for j(1, @BlockNumX)
+                    var living_num: int :: before_board[i-1][j-1] + before_board[i-1][j] + before_board[i-1][j+1] + before_board[i][j-1] + before_board[i][j+1] + before_board[i+1][j-1] + before_board[i+1][j] + before_board[i+1][j+1]
                     if (living_num = 3 | (before_board[i][j] = 1 & living_num = 2))
                         do board[i][j] :: 1
                     else
